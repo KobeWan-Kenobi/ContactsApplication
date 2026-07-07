@@ -2,22 +2,22 @@
 using Contacts.DataAccess.EF.Models;
 using Contacts.DataAccess.EF.Context;
 using System.ComponentModel;
-namespace ContactsApp.Models
+namespace ContactsApp.ViewModels
 {
-    public class ContactsViewModel
+    public class ContactViewModel
     {
         private ContactRepository _repo;
         public List<Contact>? ContactList { get; set; }
         public Contact? CurrentContact { get; set; }
         public bool? IsActionSuccess { get; set; }
         public string? ActionMessage { get; set; }
-        public ContactsViewModel(ContactsContext context)
+        public ContactViewModel(ContactsContext context)
         {
             _repo = new ContactRepository(context);
             ContactList = GetAllContacts();
             CurrentContact = ContactList.FirstOrDefault();
         }
-        public ContactsViewModel(ContactsContext context, int contactID)
+        public ContactViewModel(ContactsContext context, int contactID)
         {
             _repo = new ContactRepository(context);
             ContactList = GetAllContacts();
@@ -39,6 +39,12 @@ namespace ContactsApp.Models
             }
             ContactList = GetAllContacts();
             CurrentContact = GetContact(contact.ContactId);
+        }
+        public void RemoveContact(int contactId)
+        {
+            _repo.Delete(contactId);
+            ContactList = GetAllContacts();
+            CurrentContact = ContactList.FirstOrDefault();
         }
         public List<Contact> GetAllContacts()
         {

@@ -16,7 +16,7 @@ public partial class ContactsContext : DbContext
     {
     }
 
-    public virtual DbSet<Contact> Contacts { get; set; }
+    public virtual DbSet<Models.Contact> Contacts { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
