@@ -6,7 +6,7 @@ namespace ContactsApp.ViewModels
 {
     public class ContactViewModel
     {
-        private ContactRepository _repo;
+        private IContactRepository _repo;
         public List<Contact>? ContactList { get; set; }
         public Contact? CurrentContact { get; set; }
         public bool? IsActionSuccess { get; set; }

@@ -8,6 +8,12 @@ namespace ContactsApp.Controllers
     public class ContactController : Controller
     {
         private readonly ContactsDbContext _context;
+        private readonly ApiResponse _response;
+        public ContactController(ContactsDbContext context)
+        {
+            _context = context;
+            _response = new ApiResponse();
+        }
         public IActionResult Index()
         {
             ContactViewModel viewModel = new ContactViewModel(_context);

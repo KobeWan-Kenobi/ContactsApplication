@@ -8,7 +8,7 @@ using System.Net.Http.Headers;
 namespace Contacts.DataAccess.EF.Repositories
 {
 
-    public class ContactRepository
+    public class ContactRepository : IContactRepository
     {
         private ContactsDbContext _contactsContext;
         public ContactRepository(ContactsDbContext contactsContext)
