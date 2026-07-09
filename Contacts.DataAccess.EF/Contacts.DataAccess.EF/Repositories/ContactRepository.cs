@@ -10,8 +10,8 @@ namespace Contacts.DataAccess.EF.Repositories
 
     public class ContactRepository
     {
-        private ContactsContext _contactsContext;
-        public ContactRepository(ContactsContext contactsContext)
+        private ContactsDbContext _contactsContext;
+        public ContactRepository(ContactsDbContext contactsContext)
         {
             _contactsContext = contactsContext;
         }

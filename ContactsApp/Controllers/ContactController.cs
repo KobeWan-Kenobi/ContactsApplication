@@ -7,7 +7,7 @@ namespace ContactsApp.Controllers
 {
     public class ContactController : Controller
     {
-        private readonly ContactsContext _context;
+        private readonly ContactsDbContext _context;
         public IActionResult Index()
         {
             ContactViewModel viewModel = new ContactViewModel(_context);

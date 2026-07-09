@@ -11,13 +11,13 @@ namespace ContactsApp.ViewModels
         public Contact? CurrentContact { get; set; }
         public bool? IsActionSuccess { get; set; }
         public string? ActionMessage { get; set; }
-        public ContactViewModel(ContactsContext context)
+        public ContactViewModel(ContactsDbContext context)
         {
             _repo = new ContactRepository(context);
             ContactList = GetAllContacts();
             CurrentContact = ContactList.FirstOrDefault();
         }
-        public ContactViewModel(ContactsContext context, int contactID)
+        public ContactViewModel(ContactsDbContext context, int contactID)
         {
             _repo = new ContactRepository(context);
             ContactList = GetAllContacts();
