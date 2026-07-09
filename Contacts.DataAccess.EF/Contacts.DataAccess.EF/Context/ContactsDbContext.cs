@@ -1,22 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using Contacts.DataAccess.EF.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Contacts.DataAccess.EF.Context;
 
-public partial class ContactsContext : DbContext
+public partial class ContactsDbContext : IdentityDbContext<IdentityUser>
 {
-    public ContactsContext()
+    public ContactsDbContext()
     {
     }
 
-    public ContactsContext(DbContextOptions<ContactsContext> options)
+    public ContactsDbContext(DbContextOptions<ContactsDbContext> options)
         : base(options)
     {
     }
 
-    public virtual DbSet<Models.Contact> Contacts { get; set; }
+    public virtual DbSet<Contact> Contacts { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -24,6 +26,7 @@ public partial class ContactsContext : DbContext
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<Contact>(entity =>
         {
             entity
