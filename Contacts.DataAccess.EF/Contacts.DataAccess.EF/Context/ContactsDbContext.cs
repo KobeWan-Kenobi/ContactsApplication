@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Contacts.DataAccess.EF.Context;
 
-public partial class ContactsDbContext : IdentityDbContext<IdentityUser>
+public partial class ContactsDbContext : IdentityDbContext<User>
 {
     public ContactsDbContext()
     {

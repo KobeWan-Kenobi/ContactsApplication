@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System;
 using System.Collections.Generic;
 
 namespace Contacts.DataAccess.EF.Models
 {
 
-    public partial class Contact
+    public partial class Contact 
     {
         public int ContactId { get; set; }
 

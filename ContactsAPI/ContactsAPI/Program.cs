@@ -1,4 +1,5 @@
 using Contacts.DataAccess.EF.Context;
+using Contacts.DataAccess.EF.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
@@ -15,7 +16,7 @@ namespace ContactsAPI
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
-            builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<ContactsDbContext>();
+            builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<ContactsDbContext>();
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
 
