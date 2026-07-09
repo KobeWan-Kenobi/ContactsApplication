@@ -1,14 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Contacts.DataAccess.EF.Models
 {
 
     public partial class Contact 
     {
+        [Key]
         public int ContactId { get; set; }
-
+        [Required]
         public string FullName { get; set; } = string.Empty;
 
         public string Phone { get; set; } = string.Empty;
