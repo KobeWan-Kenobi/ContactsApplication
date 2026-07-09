@@ -26,7 +26,7 @@ namespace ContactsApp
         {
             services.AddControllersWithViews();
             services.AddMvc();
-            services.AddDbContext<ContactsContext>(
+            services.AddDbContext<ContactsDbContext>(
                 options => options.UseSqlServer(Configuration.GetConnectionString("Contacts")));
         }
 
