@@ -21,30 +21,24 @@ namespace ContactsApp.Controllers
         public IActionResult GetContactList()
         {
             ContactViewModel viewModel = new ContactViewModel(_context);
-            _response.Result = viewModel.ContactList;
+            _response.Result = viewModel.GetAllContacts();
             _response.StatusCode = HttpStatusCode.OK;
             return Ok(_response);
         }
 
-        [HttpPost]
-        public IActionResult Index()
+        [HttpGet("{contactId:int}", Name="GetContact")]
+        public IActionResult GetContact(int contactId)
         {
             ContactViewModel viewModel = new ContactViewModel(_context);
-            return View(viewModel);
-        }
-
-        
-        public IActionResult Index(int contactId, string fullName, string phone, string email, bool isFavorite)
-        {
-            ContactViewModel viewModel = new ContactViewModel(_context);
-
-            Contact contact = new Contact(contactId, fullName, phone, email, isFavorite);
-
-            viewModel.SaveContact(contact);
-            viewModel.IsActionSuccess = true;
-            viewModel.ActionMessage = "Contact has been saved successfully";
-
-            return View(viewModel);
+            if(contactId == 0)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                return BadRequest(_response);
+            }
+            _response.Result = viewModel.GetContact(contactId);
+            _response.StatusCode = HttpStatusCode.OK;
+            return Ok(_response);
         }
 
         public IActionResult Update(int contactId)
