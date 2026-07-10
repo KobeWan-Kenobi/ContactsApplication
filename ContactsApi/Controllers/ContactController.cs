@@ -2,9 +2,12 @@
 using ContactsApp.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Contacts.DataAccess.EF.Models;
+using System.Net;
 
 namespace ContactsApp.Controllers
 {
+    [Route("api/Contacts")]
+    [ApiController]
     public class ContactController : Controller
     {
         private readonly ContactsDbContext _context;
@@ -14,13 +17,23 @@ namespace ContactsApp.Controllers
             _context = context;
             _response = new ApiResponse();
         }
+        [HttpGet]
+        public IActionResult GetContactList()
+        {
+            ContactViewModel viewModel = new ContactViewModel(_context);
+            _response.Result = viewModel.ContactList;
+            _response.StatusCode = HttpStatusCode.OK;
+            return Ok(_response);
+        }
+
+        [HttpPost]
         public IActionResult Index()
         {
             ContactViewModel viewModel = new ContactViewModel(_context);
             return View(viewModel);
         }
 
-        [HttpPost]
+        
         public IActionResult Index(int contactId, string fullName, string phone, string email, bool isFavorite)
         {
             ContactViewModel viewModel = new ContactViewModel(_context);
