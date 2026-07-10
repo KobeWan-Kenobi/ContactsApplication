@@ -1,32 +1,6 @@
-//using Microsoft.AspNetCore.Hosting;
-//using Microsoft.Extensions.Configuration;
-//using Microsoft.Extensions.Hosting;
-//using Microsoft.Extensions.Logging;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Threading.Tasks;
-
-//namespace ContactsApp
-//{
-//    public class Program
-//    {
-//        public static void Main(string[] args)
-//        {
-//            CreateHostBuilder(args).Build().Run();
-//        }
-
-//        public static IHostBuilder CreateHostBuilder(string[] args) =>
-//            Host.CreateDefaultBuilder(args)
-//                .ConfigureWebHostDefaults(webBuilder =>
-//                {
-//                    webBuilder.UseStartup<Startup>();
-//                });
-//    }
-//}
-
 using Contacts.DataAccess.EF.Context;
 using Contacts.DataAccess.EF.Models;
+using Contacts.DataAccess.EF.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
@@ -38,16 +12,12 @@ namespace ContactsApp
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-            //builder.Services.AddDbContext<ContactsDbContext>(options =>
-            //{
-            //    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-            //});
             builder.Services.AddDbContext<ContactsDbContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("Contacts"));
             });
             builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<ContactsDbContext>();
+            builder.Services.AddScoped<IContactRepository, ContactRepository>();
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
 
