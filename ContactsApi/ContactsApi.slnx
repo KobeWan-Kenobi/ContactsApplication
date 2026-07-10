@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../Contacts.DataAccess.EF/Contacts.DataAccess.EF/Contacts.DataAccess.EF.csproj" />
+  <Project Path="ContactsApi.csproj" />
+</Solution>
