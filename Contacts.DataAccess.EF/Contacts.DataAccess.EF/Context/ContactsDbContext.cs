@@ -29,9 +29,9 @@ public partial class ContactsDbContext : IdentityDbContext<User>
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<Contact>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("contacts");
+            entity.HasKey(e => e.ContactId);
+
+            entity.ToTable("contacts");
 
             entity.Property(e => e.ContactId)
                 .ValueGeneratedOnAdd()
