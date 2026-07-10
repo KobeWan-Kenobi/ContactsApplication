@@ -1,4 +1,5 @@
 ﻿using Contacts.DataAccess.EF.Context;
+using Contacts.DataAccess.EF.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +29,7 @@ namespace ContactsApp
             services.AddMvc();
             services.AddDbContext<ContactsDbContext>(
                 options => options.UseSqlServer(Configuration.GetConnectionString("Contacts")));
+            services.AddScoped<IContactRepository, ContactRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
