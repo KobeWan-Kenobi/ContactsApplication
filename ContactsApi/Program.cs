@@ -20,6 +20,16 @@ namespace ContactsApp
             builder.Services.AddScoped<IContactRepository, ContactRepository>();
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
+            // Allows React to make cross-origin calls
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactDev", policy =>
+                {
+                    policy.WithOrigins("http://localhost:5174")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
 
             var app = builder.Build();
 
@@ -35,7 +45,7 @@ namespace ContactsApp
 
             app.UseAuthorization();
 
-
+            app.UseCors("AllowReactDev");
             app.MapControllers();
 
             app.Run();
