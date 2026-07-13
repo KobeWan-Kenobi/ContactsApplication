@@ -1,37 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import React from "react";
 import Contact from "./Contact";
 import FavoriteContact from "./FavoriteContact";
 import GeneralContact from "./GeneralContact";
 import AddContact from "./AddContact";
 import AddRandomContact from "../AddRandomContact";
-function ContactIndex() {
-  const [contactList, setContactList] = useState([
-    {
-      id: 0,
-      name: "Kobe Halog",
-      phone: "123-456-7890",
-      email: "kobe.halog@snailmail.com",
-      isFavorite: true,
-    },
-    {
-      id: 1,
-      name: "Rubi Little",
-      phone: "987-654-3210",
-      email: "rubi.little@snailmail.com",
-      isFavorite: true,
-    },
-    {
-      id: 2,
-      name: "Kenneth Velez",
-      phone: "777-777-7777",
-      email: "kenneth.velez@snailmail.com",
-      isFavorite: false,
-    },
-  ]);
+import getAllContacts from "../../Utility/ContactsServices";
+import TestGetAllContactsApiCall from "./TestApiCall";
+import axios from "axios";
+function ContactIndexNew() {
+  const [contactList, setContactList] = useState(null);
+  useEffect(() => {
+    getAllContacts().then((list) => {
+      setContactList(list);
+    });
+  }, []);
+
   // the below states deal with updating user info
   const [selectedContact, setSelectedContact] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
+
   function handlePencilClick(contact) {
     setSelectedContact(contact);
     setIsUpdating(true);
@@ -114,7 +102,6 @@ function ContactIndex() {
   }
 
   function handleAddRandomContact(newContact) {
-
     const duplicateContact = contactList.find((contact) => {
       if (
         contact.name === newContact.name ||
@@ -149,7 +136,6 @@ function ContactIndex() {
     };
   }
 
-
   function handleDeleteContact(oldContact) {
     setContactList((prevState) => {
       return prevState.filter((obj) => obj.id != oldContact.id);
@@ -182,8 +168,7 @@ function ContactIndex() {
   return (
     <div className="container" style={{ minHeight: "85vh" }}>
       <div className="py-3">
-        <div className="row py-2">
-        </div>
+        <div className="row py-2"></div>
         <div className="py-2">
           <div className="col-12">
             <AddContact
@@ -205,20 +190,24 @@ function ContactIndex() {
               </button>
             </div>
           </div>
-
+          <TestGetAllContactsApiCall />
           <div className="col-12">
-            <FavoriteContact
-              favoriteClick={handleToggleFavorite}
-              deleteContact={handleDeleteContact}
-              updateClick={handlePencilClick}
-              contacts={contactList.filter((u) => u.isFavorite == true)}
-            />
-            <GeneralContact
-              favoriteClick={handleToggleFavorite}
-              deleteContact={handleDeleteContact}
-              updateClick={handlePencilClick}
-              contacts={contactList.filter((u) => u.isFavorite == false)}
-            />
+            {contactList && (
+              <FavoriteContact
+                favoriteClick={handleToggleFavorite}
+                deleteContact={handleDeleteContact}
+                updateClick={handlePencilClick}
+                contacts={contactList.filter((u) => u.isFavorite == true)}
+              />
+            )}
+            {contactList && (
+              <GeneralContact
+                favoriteClick={handleToggleFavorite}
+                deleteContact={handleDeleteContact}
+                updateClick={handlePencilClick}
+                contacts={contactList.filter((u) => u.isFavorite == false)}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -226,4 +215,4 @@ function ContactIndex() {
   );
 }
 
-export default ContactIndex;
+export default ContactIndexNew;
