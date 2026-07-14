@@ -86,6 +86,36 @@ namespace ContactsApp.Controllers
             return BadRequest(_response);
         }
 
+        [HttpDelete]
+        public async Task<ActionResult<ApiResponse>> DeleteContact(int contactId)
+        {
+            try
+            {
+                ContactViewModel viewModel = new ContactViewModel(_context);
+                if (!ModelState.IsValid)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages = ["Error: ModelState is invalid"];
+                    return BadRequest(_response);
+                }
+                else
+                {
+                    viewModel.RemoveContact(contactId);
+                    viewModel.IsActionSuccess = true;
+                    viewModel.ActionMessage = "Contact has been deleted successfully";
+                    return Ok(_response);
+                }
+                
+
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = [ex.ToString()];
+            }
+            return BadRequest(_response);
+        }
 
         public IActionResult Update(int contactId)
         {
