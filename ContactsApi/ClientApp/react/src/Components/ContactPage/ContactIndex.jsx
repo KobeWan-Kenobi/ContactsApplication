@@ -12,6 +12,7 @@ function ContactIndexNew() {
   const [contactList, setContactList] = useState(null);
   useEffect(() => {
     getAllContacts().then((list) => {
+      console.log("first contact on list",list[0]);
       setContactList(list);
     });
   }, []);
@@ -95,6 +96,7 @@ function ContactIndexNew() {
     setContactList((prevState) => {
       return prevState.concat([newFinalContact]);
     });
+    console.log("contactList after adding a contact",contactList)
     return {
       status: "success",
       msg: "Contact was added successfully.",

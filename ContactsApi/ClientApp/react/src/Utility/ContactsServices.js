@@ -11,10 +11,13 @@ const getAllContacts = async () => {
       console.log("Error", error);
       return -1;
     });
+    //backend is contactId while frontend uses id
+    // backend is fullName while frontend uses name
     return response.data.result.map(contact => {
-      const {fullName, ...rest} = contact;
-      return {...rest, name: fullName};
+      const {fullName, contactId, ...rest} = contact;
+      return {...rest, name: fullName, id: contactId};
     })
 
 };
+
 export default getAllContacts;
