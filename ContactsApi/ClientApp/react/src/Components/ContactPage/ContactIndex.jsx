@@ -5,14 +5,13 @@ import FavoriteContact from "./FavoriteContact";
 import GeneralContact from "./GeneralContact";
 import AddContact from "./AddContact";
 import AddRandomContact from "../AddRandomContact";
-import getAllContacts from "../../Utility/ContactsServices";
-import TestGetAllContactsApiCall from "./TestApiCall";
+import * as contactsServices from "../../Utility/contactsServices";
 import axios from "axios";
 function ContactIndexNew() {
   const [contactList, setContactList] = useState(null);
+
   useEffect(() => {
-    getAllContacts().then((list) => {
-      console.log("first contact on list",list[0]);
+    contactsServices.getAllContacts().then((list) => {
       setContactList(list);
     });
   }, []);
@@ -27,6 +26,14 @@ function ContactIndexNew() {
   }
   // The function that modifies a state must exist at the same file as the state definition!!!
   function handleToggleFavorite(favoriteContact) {
+    const updateContactDTO = {
+      contactId: favoriteContact.id,
+      fullName: favoriteContact.name,
+      phone: favoriteContact.phone,
+      email: favoriteContact.email,
+      isFavorite: !favoriteContact.isFavorite,
+    };
+    contactsServices.updateContact(updateContactDTO);
     setContactList((prevState) => {
       return prevState.map((obj) => {
         if (obj.id == favoriteContact.id) {
@@ -38,6 +45,14 @@ function ContactIndexNew() {
   }
   // update using similar pattern as handleToggleFavorite
   function handleUpdateContact(contact) {
+    const updateContactDTO = {
+      contactId: contact.id,
+      fullName: contact.name,
+      phone: contact.phone,
+      email: contact.email,
+      isFavorite: contact.isFavorite,
+    };
+    contactsServices.updateContact(updateContactDTO);
     setContactList((prevState) => {
       return prevState.map((obj) => {
         if (obj.id == contact.id) {
@@ -61,6 +76,7 @@ function ContactIndexNew() {
 
   // validates contacts and adds them to contactList with setContactList; returns message depending on success
   function handleAddContact(newContact) {
+    newContact.isFavorite = false;
     if (
       newContact.name == "" ||
       newContact.phone == "" ||
@@ -81,22 +97,19 @@ function ContactIndexNew() {
     if (duplicateContact) {
       return { status: "error", msg: "Duplicate record." };
     }
-
-    // if the contactList is empty the id should be zero, if not it should be the last element's id + 1
-    const newFinalContactId =
-      contactList.length == 0 ? 0 : contactList[contactList.length - 1].id + 1;
-
-    const newFinalContact = {
-      ...newContact,
-      id:
-        contactList.length > 0 ? contactList[contactList.length - 1].id + 1 : 0,
+    // push contact to database
+    const contactCreateDTO = {
+      fullName: newContact.name,
+      phone: newContact.phone,
+      email: newContact.email,
       isFavorite: false,
     };
+    contactsServices.createContact(contactCreateDTO);
 
     setContactList((prevState) => {
-      return prevState.concat([newFinalContact]);
+      return prevState.concat(newContact);
     });
-    console.log("contactList after adding a contact",contactList)
+    console.log("contactList after adding a contact", contactList);
     return {
       status: "success",
       msg: "Contact was added successfully.",
@@ -104,6 +117,7 @@ function ContactIndexNew() {
   }
 
   function handleAddRandomContact(newContact) {
+    newContact.isFavorite = false;
     const duplicateContact = contactList.find((contact) => {
       if (
         contact.name === newContact.name ||
@@ -117,20 +131,17 @@ function ContactIndexNew() {
     if (duplicateContact) {
       return { status: "error", msg: "Duplicate record." };
     }
-
-    // if the contactList is empty the id should be zero, if not it should be the last element's id + 1
-    const newFinalContactId =
-      contactList.length == 0 ? 0 : contactList[contactList.length - 1].id + 1;
-
-    const newFinalContact = {
-      ...newContact,
-      id:
-        contactList.length > 0 ? contactList[contactList.length - 1].id + 1 : 0,
+    // push contact to database
+    const contactCreateDTO = {
+      fullName: newContact.name,
+      phone: newContact.phone,
+      email: newContact.email,
       isFavorite: false,
     };
+    contactsServices.createContact(contactCreateDTO);
 
     setContactList((prevState) => {
-      return prevState.concat([newFinalContact]);
+      return prevState.concat(newContact);
     });
     return {
       status: "success",
@@ -139,34 +150,16 @@ function ContactIndexNew() {
   }
 
   function handleDeleteContact(oldContact) {
+    contactsServices.deleteContact(oldContact.id);
     setContactList((prevState) => {
       return prevState.filter((obj) => obj.id != oldContact.id);
     });
   }
 
-  function handleRemoveAllContacts() {
-    setContactList([]);
-  }
   function handleCancelUpdateContact() {
     setSelectedContact(null);
     setIsUpdating(false);
   }
-  // verify the following functions when you Claude recharges
-  // function handleAddContact(newContact){
-  //   setContactList(prevState=>{
-  //     return{
-  //       ...prevState, newContact
-  //     }
-  //   })
-  // }
-
-  // function handleDeleteContact(oldContact){
-  //   setContactList(prevState=>{
-  //     prevState.filter(obj=>{
-  //       obj.id != oldContact.id
-  //     })
-  //   })
-  // }
   return (
     <div className="container" style={{ minHeight: "85vh" }}>
       <div className="py-3">
@@ -182,17 +175,6 @@ function ContactIndexNew() {
               handleAddRandomContact={handleAddRandomContact}
             />
           </div>
-          <div className="row py-2">
-            <div className="col-5">
-              <button
-                className="btn btn-danger form-control"
-                onClick={handleRemoveAllContacts}
-              >
-                Remove All Contacts
-              </button>
-            </div>
-          </div>
-          <TestGetAllContactsApiCall />
           <div className="col-12">
             {contactList && (
               <FavoriteContact
