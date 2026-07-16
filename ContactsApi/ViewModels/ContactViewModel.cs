@@ -27,18 +27,24 @@ namespace ContactsApp.ViewModels
 
             }
         }
-        public void SaveContact(Contact contact)
+        public int SaveContact(Contact contact)
         {
             if (contact.ContactId > 0)
             {
-                _repo.Update(contact);
+                int responseId = _repo.Update(contact);
+                ContactList = GetAllContacts();
+                CurrentContact = GetContact(contact.ContactId);
+                return responseId; // if -1, user was not found
+
             }
             else
             {
                 contact.ContactId = _repo.Create(contact);
+                ContactList = GetAllContacts();
+                CurrentContact = GetContact(contact.ContactId);
+                return contact.ContactId;
             }
-            ContactList = GetAllContacts();
-            CurrentContact = GetContact(contact.ContactId);
+            
         }
         public void RemoveContact(int contactId)
         {
