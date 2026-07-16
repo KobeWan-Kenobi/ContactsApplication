@@ -1,7 +1,7 @@
 export interface ContactDTO {
-   contactId: number;
-   fullName: string;
-   phone: string;
-   email: string;
-   isFavorite: boolean;
+  contactId: number;
+  fullName: string;
+  phone: string;
+  email: string;
+  isFavorite: boolean;
 }
