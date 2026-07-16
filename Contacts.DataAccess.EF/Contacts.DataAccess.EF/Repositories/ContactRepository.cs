@@ -31,8 +31,13 @@ namespace Contacts.DataAccess.EF.Repositories
                 existingContact.Email = contact.Email;
                 existingContact.IsFavorite = contact.IsFavorite;
                 _contactsDbContext.SaveChanges();
+                return contact.ContactId;
             }
-            return contact.ContactId;
+            else
+            {
+                return -1;
+            }
+            
         }
         public bool Delete(int contactID)
         {
