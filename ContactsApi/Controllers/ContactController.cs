@@ -42,7 +42,7 @@ namespace ContactsApp.Controllers
             return Ok(_response);
         }
         [HttpPost]
-        public async Task<ActionResult<ApiResponse>> CreateContact([FromBody] ContactCreateDTO contactCreateDTO)
+        public async Task<ActionResult<ApiResponse>> CreateContact([FromBody] ContactCreateDTO incomingContactCreateDTO)
         {
             try
             {
@@ -53,7 +53,7 @@ namespace ContactsApp.Controllers
                     _response.ErrorMessages = ["Error: ModelState is invalid"];
                     return BadRequest(_response);
                 }
-                else if(contactCreateDTO == null)
+                else if (incomingContactCreateDTO == null)
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
@@ -65,14 +65,22 @@ namespace ContactsApp.Controllers
                     ContactViewModel viewModel = new ContactViewModel(_context);
                     Contact newContact = new()
                     {
-                        FullName = contactCreateDTO.FullName,
-                        Phone = contactCreateDTO.Phone,
-                        Email = contactCreateDTO.Email,
-                        IsFavorite = contactCreateDTO.IsFavorite,
+                        FullName = incomingContactCreateDTO.FullName,
+                        Phone = incomingContactCreateDTO.Phone,
+                        Email = incomingContactCreateDTO.Email,
+                        IsFavorite = incomingContactCreateDTO.IsFavorite,
                     };
-                    viewModel.SaveContact(newContact);
                     _response.IsSuccess = true;
-                    _response.Result = contactCreateDTO;
+                    int newContactId = viewModel.SaveContact(newContact);
+                    ContactDTO returnContactDTO = new()
+                    {
+                        ContactId = newContactId,
+                        FullName = newContact.FullName,
+                        Email = newContact.Email,
+                        Phone = newContact.Phone,
+                        IsFavorite = newContact.IsFavorite,
+                    };
+                    _response.Result = returnContactDTO;
                     _response.StatusCode = HttpStatusCode.Created;
                     return CreatedAtRoute("GetContact", new { contactId = newContact.ContactId }, _response);
                 }
@@ -86,7 +94,7 @@ namespace ContactsApp.Controllers
             return BadRequest(_response);
         }
 
-        [HttpDelete]
+        [HttpDelete("{contactId:int}", Name = "DeleteContact")]
         public async Task<ActionResult<ApiResponse>> DeleteContact(int contactId)
         {
             try
@@ -103,10 +111,11 @@ namespace ContactsApp.Controllers
                 {
                     viewModel.RemoveContact(contactId);
                     viewModel.IsActionSuccess = true;
-                    viewModel.ActionMessage = "Contact has been deleted successfully";
+                    _response.IsSuccess = true;
+                    _response.StatusCode = HttpStatusCode.OK;
                     return Ok(_response);
                 }
-                
+
 
             }
             catch (Exception ex)
@@ -116,22 +125,65 @@ namespace ContactsApp.Controllers
             }
             return BadRequest(_response);
         }
-
-        public IActionResult Update(int contactId)
+        [HttpPut(Name = "UpdateContact")]
+        public async Task<ActionResult<ApiResponse>> UpdateContact([FromBody] ContactDTO incomingContactDTO)
         {
-            ContactViewModel viewModel = new ContactViewModel(_context, contactId);
-            return View(viewModel);
-        }
-        public IActionResult Delete(int contactId)
-        {
-            ContactViewModel viewModel = new ContactViewModel(_context);
-            if (contactId > 0)
+            try
             {
-                viewModel.RemoveContact(contactId);
+                if (!ModelState.IsValid)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages = ["Error: ModelState is invalid"];
+                    return BadRequest(_response);
+                }
+                else if (incomingContactDTO == null)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages = ["Error: contactCreateDTO is null"];
+                    return BadRequest(_response);
+                }
+                else
+                {
+                    ContactViewModel viewModel = new ContactViewModel(_context);
+                    Contact updatedContact = new()
+                    {
+                        ContactId = incomingContactDTO.ContactId,
+                        FullName = incomingContactDTO.FullName,
+                        Phone = incomingContactDTO.Phone,
+                        Email = incomingContactDTO.Email,
+                        IsFavorite = incomingContactDTO.IsFavorite,
+                    };
+                    _response.IsSuccess = true;
+                    int responseId = viewModel.SaveContact(updatedContact); // -1 means contact not found
+                    _response.StatusCode = responseId == -1 ? HttpStatusCode.NotFound : HttpStatusCode.OK;
+                    return CreatedAtRoute("UpdateContact", _response);
+                }
+
             }
-            viewModel.IsActionSuccess = true;
-            viewModel.ActionMessage = "Contact has been deleted successfully";
-            return View("Index", viewModel);
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = [ex.ToString()];
+            }
+            return BadRequest(_response);
         }
+        //public IActionResult Update(int contactId)
+        //{
+        //    ContactViewModel viewModel = new ContactViewModel(_context, contactId);
+        //    return View(viewModel);
+        //}
+        //public IActionResult Delete(int contactId)
+        //{
+        //    ContactViewModel viewModel = new ContactViewModel(_context);
+        //    if (contactId > 0)
+        //    {
+        //        viewModel.RemoveContact(contactId);
+        //    }
+        //    viewModel.IsActionSuccess = true;
+        //    viewModel.ActionMessage = "Contact has been deleted successfully";
+        //    return View("Index", viewModel);
+        //}
     }
 }
