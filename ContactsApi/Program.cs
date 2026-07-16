@@ -11,6 +11,16 @@ namespace ContactsApp
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            // Allows React to make cross-origin calls
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactDev", policy =>
+                {
+                    policy.WithOrigins("http://localhost:5173", "https://localhost:44341", "http://localhost:5174")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
 
             builder.Services.AddDbContext<ContactsDbContext>(options =>
             {
@@ -20,19 +30,10 @@ namespace ContactsApp
             builder.Services.AddScoped<IContactRepository, ContactRepository>();
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
-            // Allows React to make cross-origin calls
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowReactDev", policy =>
-                {
-                    policy.WithOrigins("http://localhost:5173", "https://localhost:44341/", "http://localhost:5174")
-                          .AllowAnyHeader()
-                          .AllowAnyMethod();
-                });
-            });
+            
 
             var app = builder.Build();
-
+            app.UseCors("AllowReactDev");
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -43,9 +44,8 @@ namespace ContactsApp
             app.UseStaticFiles();
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
 
-            app.UseCors("AllowReactDev");
+            app.UseAuthorization();
             app.MapControllers();
 
             app.Run();
