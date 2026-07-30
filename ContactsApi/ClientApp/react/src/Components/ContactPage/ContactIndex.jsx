@@ -4,9 +4,9 @@ import Contact from "./Contact";
 import FavoriteContact from "./FavoriteContact";
 import GeneralContact from "./GeneralContact";
 import AddContact from "./AddContact";
-import AddRandomContact from "../AddRandomContact";
 import * as contactsServices from "../../Utility/contactsServices";
 import axios from "axios";
+import ContactHeaders from "./ContactHeaders";
 function ContactIndexNew() {
   const [contactList, setContactList] = useState(null);
 
@@ -25,7 +25,7 @@ function ContactIndexNew() {
     setIsUpdating(true);
   }
   // The function that modifies a state must exist at the same file as the state definition!!!
-  function handleToggleFavorite(favoriteContact) {
+  async function handleToggleFavorite(favoriteContact) {
     const updateContactDTO = {
       contactId: favoriteContact.id,
       fullName: favoriteContact.name,
@@ -33,18 +33,22 @@ function ContactIndexNew() {
       email: favoriteContact.email,
       isFavorite: !favoriteContact.isFavorite,
     };
-    contactsServices.updateContact(updateContactDTO);
-    setContactList((prevState) => {
-      return prevState.map((obj) => {
-        if (obj.id == favoriteContact.id) {
-          return { ...obj, isFavorite: !obj.isFavorite };
-        }
-        return obj;
+    const response = await contactsServices
+      .updateContact(updateContactDTO)
+      .then(()=>{
+        setContactList((prevState) => {
+          return prevState.map((obj) => {
+            if (obj.id == favoriteContact.id) {
+              return { ...obj, isFavorite: !obj.isFavorite };
+            }
+            return obj;
+          });
+        });
       });
-    });
+    return response;
   }
   // update using similar pattern as handleToggleFavorite
-  function handleUpdateContact(contact) {
+  async function handleUpdateContact(contact) {
     const updateContactDTO = {
       contactId: contact.id,
       fullName: contact.name,
@@ -52,30 +56,34 @@ function ContactIndexNew() {
       email: contact.email,
       isFavorite: contact.isFavorite,
     };
-    contactsServices.updateContact(updateContactDTO);
-    setContactList((prevState) => {
-      return prevState.map((obj) => {
-        if (obj.id == contact.id) {
-          return {
-            ...obj,
-            name: contact.name,
-            email: contact.email,
-            phone: contact.phone,
-          };
-        }
-        return obj;
+    const returnStatus = await contactsServices
+      .updateContact(updateContactDTO)
+      .then(() => {
+        setContactList((prevState) => {
+          return prevState.map((obj) => {
+            if (obj.id == contact.id) {
+              return {
+                ...obj,
+                name: contact.name,
+                email: contact.email,
+                phone: contact.phone,
+              };
+            }
+            return obj;
+          });
+        });
+        return {
+          status: "success",
+          msg: "Contact was updated successfully.",
+        };
       });
-    });
     setSelectedContact(null);
     setIsUpdating(false);
-    return {
-      status: "success",
-      msg: "Contact was updated successfully.",
-    };
+    return returnStatus;
   }
 
   // validates contacts and adds them to contactList with setContactList; returns message depending on success
-  function handleAddContact(newContact) {
+  async function handleAddContact(newContact) {
     newContact.isFavorite = false;
     if (
       newContact.name == "" ||
@@ -104,19 +112,23 @@ function ContactIndexNew() {
       email: newContact.email,
       isFavorite: false,
     };
-    contactsServices.createContact(contactCreateDTO);
-
-    setContactList((prevState) => {
-      return prevState.concat(newContact);
-    });
-    console.log("contactList after adding a contact", contactList);
-    return {
-      status: "success",
-      msg: "Contact was added successfully.",
-    };
+    const handleAddContactPromise = await contactsServices
+      .createContact(contactCreateDTO)
+      .then((id) => {
+        newContact.id = id;
+        setContactList((prevState) => {
+          return prevState.concat(newContact);
+        });
+        return {
+          status: "success",
+          msg: "Contact was added successfully.",
+        };
+      });
+    return handleAddContactPromise;
+    // newContact.id = newContactId;
   }
 
-  function handleAddRandomContact(newContact) {
+  async function handleAddRandomContact(newContact) {
     newContact.isFavorite = false;
     const duplicateContact = contactList.find((contact) => {
       if (
@@ -138,15 +150,19 @@ function ContactIndexNew() {
       email: newContact.email,
       isFavorite: false,
     };
-    contactsServices.createContact(contactCreateDTO);
-
-    setContactList((prevState) => {
-      return prevState.concat(newContact);
-    });
-    return {
-      status: "success",
-      msg: "Contact was added successfully.",
-    };
+    const handleAddRandomContactPromise = await contactsServices
+      .createContact(contactCreateDTO)
+      .then((id) => {
+        newContact.id = id;
+        setContactList((prevState) => {
+          return prevState.concat(newContact);
+        });
+        return {
+          status: "success",
+          msg: "Contact was added successfully.",
+        };
+      });
+    return handleAddRandomContactPromise;
   }
 
   function handleDeleteContact(oldContact) {
@@ -176,6 +192,9 @@ function ContactIndexNew() {
             />
           </div>
           <div className="col-12">
+            <ContactHeaders />
+          </div>
+          <div className="col-12">
             {contactList && (
               <FavoriteContact
                 favoriteClick={handleToggleFavorite}
@@ -184,6 +203,7 @@ function ContactIndexNew() {
                 contacts={contactList.filter((u) => u.isFavorite == true)}
               />
             )}
+            <div className="m-3"></div>
             {contactList && (
               <GeneralContact
                 favoriteClick={handleToggleFavorite}

@@ -1,108 +1,122 @@
-import { useState, useEffect } from "react";
-import getRandomContactFromApi from "../../Utility/randomUserApi";
-function AddContact(props) {
-  const [messages, setMessages] = useState({
-    ErrorMessage: "",
-    SuccessMessage: "",
+import { useState, useEffect, type ChangeEvent } from "react";
+import { getRandomContactFromApi } from "../Utility/randomUserApi";
+import type { RandomContactFromApi } from "../Utility/randomUserApi";
+import { ButtonResponse } from "../models/ButtonResponse";
+import type { ContactModel } from "../models/ContactModel";
+import type { ContactCreateDTO } from "../DTOs/ContactCreateDTO";
+import type { ContactDTO } from "../DTOs/ContactDTO";
+interface AddContactProps {
+  handleAddContact: (newContact: ContactCreateDTO) => Promise<ButtonResponse>;
+  handleUpdateContact: (contact: ContactModel) => Promise<ButtonResponse>;
+  isUpdating: boolean;
+  selectedContact: ContactModel | null;
+  handleCancelUpdateContact: () => ButtonResponse;
+}
+
+function AddContact(props: AddContactProps) {
+  const [buttonResponse, setButtonResponse] = useState<ButtonResponse>({
+    isSuccess: false,
+    msg: "",
   });
   // The below state stores the form's fields into a React state
   const [formData, setFormData] = useState({
-    name: "",
+    fullName: "",
     email: "",
     phone: "",
   });
   useEffect(() => {
     if (props.isUpdating && props.selectedContact) {
       setFormData({
-        name: props.selectedContact.name,
+        fullName: props.selectedContact.fullName,
         email: props.selectedContact.email,
         phone: props.selectedContact.phone,
       });
     } else {
       setFormData({
-        name: "",
+        fullName: "",
         email: "",
         phone: "",
       });
     }
   }, [props.isUpdating, props.selectedContact]);
-  function handleFormInputChange(userEvent) {
+  function handleFormInputChange(userEvent: ChangeEvent<HTMLInputElement>) {
     //console.log(userEvent); // this logs the data to console, but doesn't actually display the change on the form
     setFormData({
       ...formData, // ignore the rest of the formData
       [userEvent.target.name]: userEvent.target.value, // update whatever the user has changed
     });
   }
-  const handleGetRandomContactButton = async () => {
-    const response = await getRandomContactFromApi();
-    const responseIsSuccess =
-      response && response.results && response.results.length > 0;
+  const handleAddRandomContactButton = async (): Promise<void> => {
+    // get from api
+    const randomContactApiResponse: RandomContactFromApi =
+      await getRandomContactFromApi();
+    const responseIsSuccess: boolean =
+      randomContactApiResponse &&
+      randomContactApiResponse.results &&
+      randomContactApiResponse.results.length > 0;
+
+    // validate sucess
     if (responseIsSuccess) {
-      const user = response.results[0];
-      const formattedUser = {
-        name: `${user.name.first} ${user.name.last}`,
+      const user = randomContactApiResponse.results[0];
+      const formattedUser: ContactCreateDTO = {
+        isFavorite: false,
+        fullName: `${user.name.first} ${user.name.last}`,
         phone: user.phone,
         email: user.email,
       };
-      props.handleAddRandomContact(formattedUser);
-      setMessages({
-        errorMessage: undefined,
-        successMessage: "Random contact was added successfully.",
-      });
+
+      props.handleAddContact(formattedUser);
+      // reset if not updating - it's possible update window is open when user presses add random contact
       if (!props.isUpdating) {
-        setFormData({ name: "", phone: "", email: "" });
+        setFormData({ fullName: "", phone: "", email: "" });
       }
+      setButtonResponse({ isSuccess: true, msg: "Random contact added" });
     } else {
-      setMessages({ errorMessage: response.msg, successMessage: undefined });
+      setButtonResponse({
+        isSuccess: false,
+        msg: "Failed to add random contact",
+      });
     }
   };
-  async function handleAddContactButton(formData) {
-    const contactData = {
-          name: formData.get("name"),
-          email: formData.get("email"),
-          phone: formData.get("phone"),
-        };
+  async function handleAddContactButton(formData: FormData): Promise<void> {
+    const formDataIsFilled: boolean = formData.values != null;
+    let response = new ButtonResponse(false, "");
     try {
-      let response = undefined;
-      // updating contact
-      if (props.isUpdating && props.selectedContact) {
-        response = await props.handleUpdateContact({
-          id: props.selectedContact.id, // need to pass id to prevent creating new contact
+      // set up contact update
+      // if a contact is selected and formDataIsFilled create an updatedContact DTO object
+      if (props.selectedContact && formDataIsFilled && props.isUpdating) {
+        const updatedContact: ContactDTO = {
+          contactId: props.selectedContact.contactId, // need to pass id to prevent creating new contact
           isFavorite: props.selectedContact.isFavorite,
-          email: contactData.email,
-          phone: contactData.phone,
-          name: contactData.name,
-        });
+          email: String(formData.get("email")),
+          phone: String(formData.get("phone")),
+          fullName: String(formData.get("fullName")),
+        };
+        response = await props.handleUpdateContact(updatedContact);
       }
       // adding entirely new contact
-      else {
+      else if (!props.selectedContact) {
+        // set up contact
+        const newContactDTO: ContactCreateDTO = {
+          isFavorite: false,
+          email: String(formData.get("email")),
+          phone: String(formData.get("phone")),
+          fullName: String(formData.get("fullName")),
+        };
+        // add to database
         response = await props
-          .handleAddContact(contactData)
+          .handleAddContact(newContactDTO)
           .then((returnValue) => {
             return returnValue;
           });
       }
 
-      if (response.status == 'success') {
-        setMessages({
-          errorMessage: undefined,
-          successMessage: response.msg,
-        });
-        if (!props.isUpdating) {
-          setFormData({ name: "", phone: "", email: "" });
-        }
-      } else {
-        setMessages({
-          errorMessage: response.msg,
-          successMessage: undefined,
-        });
+      if (response.isSuccess) {
+        setFormData({ fullName: "", phone: "", email: "" });
       }
+      setButtonResponse({ isSuccess: response.isSuccess, msg: response.msg });
     } catch (error) {
       console.log(error);
-      setMessages({
-        errorMessage: "Error encountered!",
-        successMessage: undefined,
-      });
     }
   }
   return (
@@ -118,9 +132,9 @@ function AddContact(props) {
           <div className="col-12">
             <input
               placeholder="Name"
-              name="name"
+              name="fullName"
               onChange={handleFormInputChange} // explicitly tells react what to do when each letter is typed into the field; allows React to see each change
-              value={formData.name} // binds the field to the formData variable
+              value={formData.fullName} // binds the field to the formData variable
               className="form-control form-control-sm"
             />
           </div>
@@ -160,7 +174,7 @@ function AddContact(props) {
             {/* <AddRandomContact handleAddRandomContact={props.handleAddRandomContact} /> */}
             <button
               className="btn btn-success form-control btn-primary btn-sm m-1"
-              onClick={handleGetRandomContactButton}
+              onClick={handleAddRandomContactButton}
               type="button"
             >
               ADD RANDOM CONTACT
@@ -170,9 +184,7 @@ function AddContact(props) {
             <div className="p-2 col-6">
               <button
                 type="reset"
-                onClick={() =>
-                  props.handleCancelUpdateContact(props.selectedContact)
-                }
+                onClick={() => props.handleCancelUpdateContact()}
                 className="btn m-1 btn-danger btn-sm form-control"
               >
                 CANCEL
@@ -180,14 +192,14 @@ function AddContact(props) {
             </div>
           )}
 
-          {messages.successMessage && (
+          {buttonResponse.isSuccess && (
             <div className="col-12 text-center text-success">
-              {messages.successMessage}
+              {buttonResponse.msg}
             </div>
           )}
-          {messages.errorMessage && (
+          {!buttonResponse.isSuccess && (
             <div className="col-12 text-center text-danger">
-              {messages.errorMessage}
+              {buttonResponse.msg}
             </div>
           )}
         </div>

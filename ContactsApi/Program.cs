@@ -16,7 +16,7 @@ namespace ContactsApp
             {
                 options.AddPolicy("AllowReactDev", policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173", "https://localhost:44341", "http://localhost:5174")
+                    policy.WithOrigins("http://localhost:5173", "https://localhost:44341", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176")
                           .AllowAnyHeader()
                           .AllowAnyMethod();
                 });

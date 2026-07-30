@@ -12,7 +12,7 @@ namespace ContactsApp.Controllers
     public class ContactController : Controller
     {
         private readonly ContactsDbContext _context;
-        private readonly ApiResponse _response;
+        private ApiResponse _response;
         public ContactController(ContactsDbContext context)
         {
             _context = context;
@@ -22,7 +22,10 @@ namespace ContactsApp.Controllers
         public IActionResult GetContactList()
         {
             ContactViewModel viewModel = new ContactViewModel(_context);
-            _response.Result = viewModel.GetAllContacts();
+
+            List<Contact>? contactModelList = viewModel.ContactList ?? [];
+            List<ContactDTO>? contactDTOList = ContactDTO.ToDtoList(contactModelList);
+            _response.ContactDtoList = contactDTOList;
             _response.StatusCode = HttpStatusCode.OK;
             return Ok(_response);
         }
@@ -37,7 +40,8 @@ namespace ContactsApp.Controllers
                 _response.IsSuccess = false;
                 return BadRequest(_response);
             }
-            _response.Result = viewModel.GetContact(contactId);
+            _response.ContactDtoList = null;
+            _response.ContactDto = ContactDTO.ToDto(viewModel.GetContact(contactId));
             _response.StatusCode = HttpStatusCode.OK;
             return Ok(_response);
         }
@@ -72,15 +76,15 @@ namespace ContactsApp.Controllers
                     };
                     _response.IsSuccess = true;
                     int newContactId = viewModel.SaveContact(newContact);
-                    ContactDTO returnContactDTO = new()
+                    _response.ContactDto = new ContactDTO
                     {
                         ContactId = newContactId,
-                        FullName = newContact.FullName,
-                        Email = newContact.Email,
-                        Phone = newContact.Phone,
-                        IsFavorite = newContact.IsFavorite,
+                        FullName = incomingContactCreateDTO.FullName,
+                        Phone = incomingContactCreateDTO.Phone,
+                        Email = incomingContactCreateDTO.Email,
+                        IsFavorite = incomingContactCreateDTO.IsFavorite
                     };
-                    _response.Result = returnContactDTO;
+                    _response.ContactDtoList = null;
                     _response.StatusCode = HttpStatusCode.Created;
                     return CreatedAtRoute("GetContact", new { contactId = newContact.ContactId }, _response);
                 }
@@ -99,6 +103,8 @@ namespace ContactsApp.Controllers
         {
             try
             {
+                _response.ContactDto = null;
+                _response.ContactDtoList = null;
                 ContactViewModel viewModel = new ContactViewModel(_context);
                 if (!ModelState.IsValid)
                 {
@@ -130,6 +136,8 @@ namespace ContactsApp.Controllers
         {
             try
             {
+                _response.ContactDto = null;
+                _response.ContactDtoList = null;
                 if (!ModelState.IsValid)
                 {
                     _response.IsSuccess = false;
@@ -169,21 +177,5 @@ namespace ContactsApp.Controllers
             }
             return BadRequest(_response);
         }
-        //public IActionResult Update(int contactId)
-        //{
-        //    ContactViewModel viewModel = new ContactViewModel(_context, contactId);
-        //    return View(viewModel);
-        //}
-        //public IActionResult Delete(int contactId)
-        //{
-        //    ContactViewModel viewModel = new ContactViewModel(_context);
-        //    if (contactId > 0)
-        //    {
-        //        viewModel.RemoveContact(contactId);
-        //    }
-        //    viewModel.IsActionSuccess = true;
-        //    viewModel.ActionMessage = "Contact has been deleted successfully";
-        //    return View("Index", viewModel);
-        //}
     }
 }

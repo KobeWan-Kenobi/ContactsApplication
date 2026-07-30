@@ -6,17 +6,20 @@ function FavoriteContact(props) {
         className="col-12 p-1 bg-secondary-subtle"
         style={{ borderRadius: "20px" }}
       >
-        <div className="text-center text-black-50">Favorites</div>
+
+          <div className="text-center text-black"><h4>Favorites</h4></div>
+          
+
         {/* The following is an IMPORTANT KEY CONCEPT:
           1) filtering an array from a parent component 
           2) rendering the child component several times for each match from array*/}
-        {props.contacts.map((contact, index) => (
+        {props.contacts.map((contact) => (
           <Contact
             favoriteClick={props.favoriteClick}
             deleteContact={props.deleteContact}
             updateClick={props.updateClick}
             contact={contact}
-            key={index}
+            key={contact.id}
           />
         ))}
       </div>
