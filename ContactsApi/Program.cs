@@ -41,7 +41,6 @@ namespace ContactsApp
                 app.MapScalarApiReference();
             }
             app.UseDefaultFiles();
-            app.UseStaticFiles();
             app.UseHttpsRedirection();
 
 
