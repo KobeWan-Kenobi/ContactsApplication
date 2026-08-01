@@ -21,7 +21,7 @@ namespace Contacts.DataAccess.EF.Repositories
             _contactsDbContext.SaveChanges();
             return contact.ContactId;
         }
-        public int Update(Contact contact)
+        public bool Update(Contact contact)
         {
             Contact? existingContact = _contactsDbContext.Contacts.Find(contact.ContactId);
             if (existingContact != null)
@@ -31,11 +31,11 @@ namespace Contacts.DataAccess.EF.Repositories
                 existingContact.Email = contact.Email;
                 existingContact.IsFavorite = contact.IsFavorite;
                 _contactsDbContext.SaveChanges();
-                return contact.ContactId;
+                return true;
             }
             else
             {
-                return -1;
+                return false;
             }
             
         }

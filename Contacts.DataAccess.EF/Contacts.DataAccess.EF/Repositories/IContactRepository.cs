@@ -8,7 +8,7 @@ namespace Contacts.DataAccess.EF.Repositories
     public interface IContactRepository
     {
         int Create(Contact contact);
-        int Update(Contact contact);
+        bool Update(Contact contact);
         bool Delete(int contactId);
         List<Contact> GetAllContacts();
         Contact? GetContactById(int contactId);

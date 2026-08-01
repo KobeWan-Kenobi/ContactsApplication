@@ -6,12 +6,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	<OpenApiGenerateDocuments>false</OpenApiGenerateDocuments>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Content Remove="wwwroot\assets\index-CKr7h2cV.js" />
-    <Content Remove="wwwroot\favicon.ico" />
-    <Content Remove="wwwroot\style.css" />
-  </ItemGroup>
 	
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
@@ -25,12 +19,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Contacts.DataAccess.EF\Contacts.DataAccess.EF\Contacts.DataAccess.EF.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="wwwroot\assets\index-CKr7h2cV.js" />
-    <None Include="wwwroot\favicon.ico" />
-    <None Include="wwwroot\style.css" />
   </ItemGroup>
 
 

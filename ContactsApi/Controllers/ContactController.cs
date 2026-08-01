@@ -1,9 +1,9 @@
 ﻿using Contacts.DataAccess.EF.Context;
-using ContactsApp.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Contacts.DataAccess.EF.Models;
 using System.Net;
 using ContactsApi.Models.DTOs;
+using Contacts.DataAccess.EF.Repositories;
 
 namespace ContactsApp.Controllers
 {
@@ -11,19 +11,18 @@ namespace ContactsApp.Controllers
     [ApiController]
     public class ContactController : Controller
     {
-        private readonly ContactsDbContext _context;
+        private readonly IContactRepository _contactRepository;
         private ApiResponse _response;
-        public ContactController(ContactsDbContext context)
+        public ContactController(IContactRepository contactRepository)
         {
-            _context = context;
+            _contactRepository = contactRepository;
             _response = new ApiResponse();
         }
         [HttpGet]
         public IActionResult GetContactList()
         {
-            ContactViewModel viewModel = new ContactViewModel(_context);
 
-            List<Contact>? contactModelList = viewModel.ContactList ?? [];
+            List<Contact>? contactModelList = _contactRepository.GetAllContacts() ?? [];
             List<ContactDTO>? contactDTOList = ContactDTO.ToDtoList(contactModelList);
             _response.ContactDtoList = contactDTOList;
             _response.StatusCode = HttpStatusCode.OK;
@@ -33,17 +32,24 @@ namespace ContactsApp.Controllers
         [HttpGet("{contactId:int}", Name = "GetContact")]
         public IActionResult GetContact(int contactId)
         {
-            ContactViewModel viewModel = new ContactViewModel(_context);
-            if (contactId == 0)
+            if (contactId < 0)
             {
                 _response.StatusCode = HttpStatusCode.BadRequest;
                 _response.IsSuccess = false;
                 return BadRequest(_response);
             }
             _response.ContactDtoList = null;
-            _response.ContactDto = ContactDTO.ToDto(viewModel.GetContact(contactId));
-            _response.StatusCode = HttpStatusCode.OK;
-            return Ok(_response);
+            _response.ContactDto = ContactDTO.ToDto(_contactRepository.GetContactById(contactId));
+            if(_response.ContactDto != null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                return Ok(_response);
+            }
+            else
+            {
+                _response.StatusCode = HttpStatusCode.NotFound;
+                return NotFound(_response);
+            }
         }
         [HttpPost]
         public async Task<ActionResult<ApiResponse>> CreateContact([FromBody] ContactCreateDTO incomingContactCreateDTO)
@@ -66,7 +72,6 @@ namespace ContactsApp.Controllers
                 }
                 else
                 {
-                    ContactViewModel viewModel = new ContactViewModel(_context);
                     Contact newContact = new()
                     {
                         FullName = incomingContactCreateDTO.FullName,
@@ -75,7 +80,7 @@ namespace ContactsApp.Controllers
                         IsFavorite = incomingContactCreateDTO.IsFavorite,
                     };
                     _response.IsSuccess = true;
-                    int newContactId = viewModel.SaveContact(newContact);
+                    int newContactId = _contactRepository.Create(newContact);
                     _response.ContactDto = new ContactDTO
                     {
                         ContactId = newContactId,
@@ -105,7 +110,6 @@ namespace ContactsApp.Controllers
             {
                 _response.ContactDto = null;
                 _response.ContactDtoList = null;
-                ContactViewModel viewModel = new ContactViewModel(_context);
                 if (!ModelState.IsValid)
                 {
                     _response.IsSuccess = false;
@@ -115,14 +119,10 @@ namespace ContactsApp.Controllers
                 }
                 else
                 {
-                    viewModel.RemoveContact(contactId);
-                    viewModel.IsActionSuccess = true;
-                    _response.IsSuccess = true;
+                    _response.IsSuccess = _contactRepository.Delete(contactId);
                     _response.StatusCode = HttpStatusCode.OK;
                     return Ok(_response);
                 }
-
-
             }
             catch (Exception ex)
             {
@@ -154,7 +154,6 @@ namespace ContactsApp.Controllers
                 }
                 else
                 {
-                    ContactViewModel viewModel = new ContactViewModel(_context);
                     Contact updatedContact = new()
                     {
                         ContactId = incomingContactDTO.ContactId,
@@ -163,9 +162,8 @@ namespace ContactsApp.Controllers
                         Email = incomingContactDTO.Email,
                         IsFavorite = incomingContactDTO.IsFavorite,
                     };
-                    _response.IsSuccess = true;
-                    int responseId = viewModel.SaveContact(updatedContact); // -1 means contact not found
-                    _response.StatusCode = responseId == -1 ? HttpStatusCode.NotFound : HttpStatusCode.OK;
+                    _response.IsSuccess = _contactRepository.Update(updatedContact);
+                    _response.StatusCode = _response.IsSuccess ? HttpStatusCode.NotFound : HttpStatusCode.OK;
                     return CreatedAtRoute("UpdateContact", _response);
                 }
 
