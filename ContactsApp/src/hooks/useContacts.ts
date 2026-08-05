@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import type { ContactModel } from "../../models/ContactModel";
-import * as contactsServices from "../../Utility/contactsServices";
+import * as contactsServices from "../../Utility/contactsCrudServices";
 import { ButtonResponse } from "../../models/ButtonResponse";
 import type { ContactCreateDTO } from "../../DTOs/ContactCreateDTO";
-
+import {formatPhoneNumber} from "../../Utility/formatPhoneNumber"
 export function useContacts() {
   const [contactList, setContactList] = useState<ContactModel[]>([]);
 
@@ -91,7 +91,11 @@ export function useContacts() {
       ) {
         return new ButtonResponse(false, "One or more fields is empty!");
       }
-
+      // format and verify phone
+      const formattedPhoneNumber = formatPhoneNumber(newContact.phone);
+      if(formattedPhoneNumber == null){
+        return new ButtonResponse(false, "Invalid phone number");
+      }
       const duplicateContact = contactList.find((contact) => {
         if (
           (contact.fullName === newContact.fullName ||
@@ -134,7 +138,7 @@ export function useContacts() {
         });
         return new ButtonResponse(isSuccess, "Contact added");
       } else {
-        return new ButtonResponse(isSuccess, "Error adding contact");
+        return new ButtonResponse(isSuccess, "Error adding contact due to bad connection");
       }
     } catch (error) {
       console.log(error);
