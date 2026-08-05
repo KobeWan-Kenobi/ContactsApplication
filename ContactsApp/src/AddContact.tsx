@@ -5,7 +5,7 @@ import { ButtonResponse } from "../models/ButtonResponse";
 import type { ContactModel } from "../models/ContactModel";
 import type { ContactCreateDTO } from "../DTOs/ContactCreateDTO";
 import type { ContactDTO } from "../DTOs/ContactDTO";
-import parsePhoneNumberFromString from "libphonenumber-js";
+import ConfirmAddModal from "./ConfirmAddModal";
 interface AddContactProps {
   handleAddContact: (newContact: ContactCreateDTO) => Promise<ButtonResponse>;
   handleUpdateContact: (contact: ContactModel) => Promise<ButtonResponse>;
@@ -19,6 +19,15 @@ function AddContact(props: AddContactProps) {
     isSuccess: false,
     msg: "",
   });
+  // modal props:
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  function onClose():void{
+    setModalIsOpen(false);
+  }
+  function handleYesClick():void{
+    setModalIsOpen(false);
+  }
+  
   // The below state stores the form's fields into a React state
   const [formData, setFormData] = useState({
     fullName: "",
@@ -51,33 +60,24 @@ function AddContact(props: AddContactProps) {
     // get from api
     const randomContactApiResponse: RandomContactFromApi =
       await getRandomContactFromApi();
-    const responseIsSuccess: boolean =
-      randomContactApiResponse &&
-      randomContactApiResponse.results &&
-      randomContactApiResponse.results.length > 0;
 
-    // validate sucess
-    if (responseIsSuccess) {
-      const user = randomContactApiResponse.results[0];
-      const formattedUser: ContactCreateDTO = {
-        isFavorite: false,
-        fullName: `${user.name.first} ${user.name.last}`,
-        phone: user.phone,
-        email: user.email,
-      };
+    // format user for database
+    const user = randomContactApiResponse.results[0];
+    const formattedUser: ContactCreateDTO = {
+      isFavorite: false,
+      fullName: `${user.name.first} ${user.name.last}`,
+      phone: user.phone,
+      email: user.email,
+    };
+    // add to database
+    const randomContactButtonResponse =
+      await props.handleAddContact(formattedUser);
 
-      props.handleAddContact(formattedUser);
-      // reset if not updating - it's possible update window is open when user presses add random contact
-      if (!props.isUpdating) {
-        setFormData({ fullName: "", phone: "", email: "" });
-      }
-      setButtonResponse({ isSuccess: true, msg: "Random contact added" });
-    } else {
-      setButtonResponse({
-        isSuccess: false,
-        msg: "Failed to add random contact",
-      });
+    // reset if not updating - it's possible update window is open when user presses add random contact
+    if (randomContactButtonResponse.isSuccess && !props.isUpdating) {
+      setFormData({ fullName: "", phone: "", email: "" });
     }
+    setButtonResponse(randomContactButtonResponse);
   };
   async function handleAddContactButton(formData: FormData): Promise<void> {
     const formDataIsFilled: boolean = formData.values != null;
@@ -96,28 +96,15 @@ function AddContact(props: AddContactProps) {
         response = await props.handleUpdateContact(updatedContact);
       }
       // adding entirely new contact
-      // format contact w/ libphonenumber-js
-      const rawPhoneNumber = String(formData.get("phone") ?? "");
-      const phoneObject = parsePhoneNumberFromString(rawPhoneNumber, "US");
-      const isValidPhoneNumber = phoneObject?.isValid() ?? false;
+      
 
-      // Early return if invalid phone number (THIS METHOD FEELS CLUNKY REFACTOR THE LOGIC FOR VALIDATING CONTACTS INTO ITS OWN FILE!!!)
-      if(!isValidPhoneNumber){
-        setButtonResponse({ isSuccess: false, msg: "Invalid phone number" })
-        return;
-      }
-
-      const finalPhoneNumber = phoneObject?.formatNational();
-
-      console.log("finalPhoneNumber: ", finalPhoneNumber);
       const newContactDTO: ContactCreateDTO = {
         isFavorite: false,
         email: String(formData.get("email")),
-        phone: String(finalPhoneNumber),
+        phone: String(formData.get("phone")),
         fullName: String(formData.get("fullName")),
       };
 
-      console.log("newContactDTO: ", newContactDTO);
       // add to database
       response = await props
         .handleAddContact(newContactDTO)
@@ -132,6 +119,7 @@ function AddContact(props: AddContactProps) {
     } catch (error) {
       console.log(error);
     }
+
   }
   return (
     <div
@@ -217,6 +205,15 @@ function AddContact(props: AddContactProps) {
           )}
         </div>
       </form>
+      <ConfirmAddModal
+      handleYesClick = {handleYesClick}
+      onClose = {onClose}
+      modalIsOpen = {modalIsOpen}
+      >
+        <h1>Confirm Add?</h1>
+        <br />
+        <p>The contact you are attempting to add is a duplicate. </p>
+      </ConfirmAddModal>
     </div>
   );
 }
