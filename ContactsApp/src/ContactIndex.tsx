@@ -29,6 +29,7 @@ function ContactIndexNew() {
               isUpdating={isUpdating}
               selectedContact={selectedContact}
               handleCancelUpdateContact={handleCancelUpdateContact}
+              contactList={contactList}
             />
           </div>
           <div className="col-12">
