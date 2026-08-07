@@ -17,7 +17,7 @@ interface AddContactProps {
   isUpdating: boolean;
   selectedContact: ContactModel | null;
   handleCancelUpdateContact: () => ButtonResponse;
-  contactList: ContactModel[]
+  contactList: ContactModel[];
 }
 
 function AddContact(props: AddContactProps) {
@@ -87,38 +87,26 @@ function AddContact(props: AddContactProps) {
   };
 
   async function submitContact(dto: ContactCreateDTO): Promise<boolean> {
-    // validate request
-    if (!isFilledForm(dto)) {
-      setButtonResponse({ isSuccess: false, msg: "Form is not filled!" });
-      return false;
-    } else if (!isUnique(dto, props.contactList)) {
-      setButtonResponse({ isSuccess: false, msg: "Duplicate contact!" });
-      return false;
-    }
-    // format and verify phone number
-    const formattedPhoneNumber = formatPhoneNumber(dto.phone);
-    if (!formattedPhoneNumber) {
-      setButtonResponse({ isSuccess: false, msg: "Invalid phone number!" });
-      return false;
-    }
-    // check if updating
     if (props.selectedContact && props.isUpdating) {
       const contactUpdateDto: ContactDTO = {
         contactId: props.selectedContact.contactId,
         fullName: dto.fullName,
         email: dto.email,
-        phone: formattedPhoneNumber,
+        phone: dto.phone,
         isFavorite: dto.isFavorite,
       };
+
       const updateResponse = await props.handleUpdateContact(contactUpdateDto);
       setButtonResponse(updateResponse);
       return updateResponse.isSuccess;
-    } else {const contactCreateDto: ContactCreateDTO = {
+    } else {
+      const contactCreateDto: ContactCreateDTO = {
         fullName: dto.fullName,
         email: dto.email,
-        phone: formattedPhoneNumber,
+        phone: dto.phone,
         isFavorite: dto.isFavorite,
       };
+
       const createResponse = await props.handleAddContact(contactCreateDto);
       setButtonResponse(createResponse);
       return createResponse.isSuccess;
@@ -126,15 +114,26 @@ function AddContact(props: AddContactProps) {
   }
   async function handleAddContactButton(formData: FormData): Promise<void> {
     try {
+      const rawPhoneNumber = String(formData.get("phone"));
+      const formattedPhoneNumber = formatPhoneNumber(rawPhoneNumber);
       const contactDTO: ContactCreateDTO = {
         isFavorite: false,
         email: String(formData.get("email")),
-        phone: String(formData.get("phone")),
+        phone: String(formattedPhoneNumber),
         fullName: String(formData.get("fullName")),
       };
-
-      // submit contact
-      // add to database
+      // validate request
+      if (!isFilledForm(contactDTO)) {
+        setButtonResponse({ isSuccess: false, msg: "Form is not filled!" });
+        return;
+      } else if (!formattedPhoneNumber) {
+        setButtonResponse({ isSuccess: false, msg: "Invalid phone number!" });
+        return;
+      } else if (!isUnique(contactDTO, props.contactList)) {
+        setButtonResponse({ isSuccess: false, msg: "Duplicate contact!" });
+        return;
+      }
+      // submit contact to database
       const isSuccess = await submitContact(contactDTO);
 
       if (isSuccess) {
