@@ -490,3 +490,5 @@ ContactsKey.pub
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,dotnetcore,visualstudio,visualstudiocode,react
+ContactsApp/src/AddContact1.tsx
+ContactsApp/src/hooks/useContactForm.ts
