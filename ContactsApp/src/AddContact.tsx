@@ -30,9 +30,24 @@ function AddContact(props: AddContactProps) {
   function onClose(): void {
     setModalIsOpen(false);
   }
-  function handleYesClick(): void {
+  async function handleYesClick(): Promise<void> {
+    if (pendingContact) {
+      const isSuccess = await submitContact(pendingContact).then((isSuccess) => {
+        return isSuccess;
+      });
+      if(isSuccess){
+        setFormData({fullName: "", phone: "", email: ""});
+      }
+    }
     setModalIsOpen(false);
   }
+  function handleNoClick(): void {
+    setPendingContact(null);
+    setModalIsOpen(false);
+  }
+  const [pendingContact, setPendingContact] = useState<ContactCreateDTO | null>(
+    null,
+  );
 
   // The below state stores the form's fields into a React state
   const [formData, setFormData] = useState({
@@ -130,7 +145,8 @@ function AddContact(props: AddContactProps) {
         setButtonResponse({ isSuccess: false, msg: "Invalid phone number!" });
         return;
       } else if (!isUnique(contactDTO, props.contactList)) {
-        setButtonResponse({ isSuccess: false, msg: "Duplicate contact!" });
+        setPendingContact(contactDTO);
+        setModalIsOpen(true);
         return;
       }
       // submit contact to database
@@ -232,6 +248,7 @@ function AddContact(props: AddContactProps) {
           handleYesClick={handleYesClick}
           onClose={onClose}
           modalIsOpen={modalIsOpen}
+          handleNoClick={handleNoClick}
         >
           <h3>Confirm Add?</h3>
           <p>The contact you are attempting to add is a duplicate. </p>

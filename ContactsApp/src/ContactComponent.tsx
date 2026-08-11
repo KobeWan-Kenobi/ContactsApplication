@@ -2,6 +2,7 @@
 import type { ButtonResponse } from "../models/ButtonResponse";
 import type { ContactModel } from "../models/ContactModel";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './index.css'
 interface ContactProp{
   favoriteClick: (favoriteContact: ContactModel) => Promise<ButtonResponse>;
   updateClick: (handlePencilClick: ContactModel) => ButtonResponse;
@@ -14,8 +15,8 @@ interface ContactProp{
 function ContactComponent(props: ContactProp) {
   return (
     <div
-      className="row p-md-2 m-1"
-      style={{ borderRadius: "20px", border: "1px solid #555" }}
+      className="row p-md-2 m-1 rounded-edge"
+      // style={{ borderRadius: "20px", border: "1px solid #555" }}
     >
       <div className="col-2 pt-2">
         <img

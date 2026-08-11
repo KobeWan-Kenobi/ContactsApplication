@@ -109,3 +109,9 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+.rounded-edge{
+  /* { borderRadius: "20px", border: "1px solid #555" } */
+  border-radius: 20px;
+  border: 1px solid #555
+}
